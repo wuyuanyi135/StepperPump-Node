@@ -1,3 +1,6 @@
+---------------------------------------
+node.setcpufreq(node.CPU160MHZ)
+
 ID = "PC"..node.chipid()
 pin_step = 2
 pin_dir = 1
@@ -13,32 +16,22 @@ gpio.write(pin_en, gpio.HIGH) --- disabled
 tick_per_sec = 0
 direction = 0
 ----------------------------------------
-step_timer = tmr.create()
-shutdown_timer = tmr.create()
-shutdown_timer:register(1, tmr.ALARM_SEMI, function()
-    gpio.write(pin_step,gpio.LOW)
-end)
 function update() 
     if direction then
         gpio.write(pin_dir,gpio.HIGH)
     else
         gpio.write(pin_dir,gpio.LOW)    
     end
-    
-    step_timer:stop()
-    step_timer:unregister()
-
-    gpio.write(pin_en, gpio.HIGH)
-
+   
     if tick_per_sec ~= 0 then
+        pwm2.stop()
         gpio.write(pin_en, gpio.LOW)
-        step_timer:register(1000/tick_per_sec, tmr.ALARM_AUTO, function()
-            
-            gpio.write(pin_step,gpio.HIGH)
-            shutdown_timer:start()
-        end)
+        pwm2.setup_pin_hz(pin_step,tick_per_sec, 2, 1)
+        pwm2.start()
+    else
+        gpio.write(pin_en, gpio.HIGH)
+        pwm2.stop()
     end
-    step_timer:start()
 end
 ----------------------------------------
 station_cfg={}
